@@ -75,3 +75,11 @@ int atoi(char* num) {
 
   return res;
 }
+
+void mcpy(void* dest, const void* src, int bytes) {
+  char* d = dest;
+  const char* s = src;
+  while (bytes--) {
+    *d++ = *s++;
+  }
+}

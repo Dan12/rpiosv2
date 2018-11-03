@@ -3,33 +3,10 @@
 .global _start
 
 _start:
-  mrc p15, #0, r1, c0, c0, #5
-  and r1, r1, #3
-  cmp r1, #0
-  bne halt
+  mrc p15, #0, r0, c0, c0, #5
 
+  // set the stack pointer
   mov sp, #0x8000
 
-  ldr r4, =__bss_start
-  ldr r9, =__bss_end
-  mov r5, #0
-  mov r6, #0
-  mov r7, #0
-  mov r8, #0
-  b       2f
-
-1:
-  stmia r4!, {r5-r8}
-
-2:
-  cmp r4, r9
-  blo 1b
-
-  // Call kernel_main
-	//mov r2, #0x100
+  // Call kernel_main (should never return)
   bl kernel_main
-  b halt
-
-halt:
-  wfe
-  b halt

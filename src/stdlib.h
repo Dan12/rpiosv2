@@ -11,4 +11,6 @@ char * itoa(int i, int base);
 // convert a string into an int
 int atoi(char * num);
 
+void mcpy(void* dest, const void* src, int bytes);
+
 #endif // _STDLIB
