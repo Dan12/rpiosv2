@@ -50,6 +50,18 @@ typedef enum {
   GET_BOARD_MODEL = 0x00010001,
   GET_BOARD_REV = 0x00010002,
   GET_ARM_MEMORY = 0x00010005,
+  GET_CLOCK_RATE = 0x00030002,
+
+  // FB tags
+  FB_ALLOCATE_BUFFER = 0x00040001,
+  FB_RELESE_BUFFER = 0x00048001,
+  FB_GET_PHYSICAL_DIMENSIONS = 0x00040003,
+  FB_SET_PHYSICAL_DIMENSIONS = 0x00048003,
+  FB_GET_VIRTUAL_DIMENSIONS = 0x00040004,
+  FB_SET_VIRTUAL_DIMENSIONS = 0x00048004,
+  FB_GET_BITS_PER_PIXEL = 0x00040005,
+  FB_SET_BITS_PER_PIXEL = 0x00048005,
+  FB_GET_BYTES_PER_ROW = 0x00040008
 } property_tag_t;
 
 /**
@@ -65,27 +77,50 @@ typedef struct {
   uint32_t size;
 } get_arm_memory_t;
 
+typedef struct {
+  uint32_t clock_id;
+  uint32_t rate;
+} get_clock_rate_t;
+
+typedef struct {
+  volatile uint8_t* fb_addr;
+  uint32_t fb_size;
+} fb_allocate_res_t;
+
+typedef struct {
+  uint32_t width;
+  uint32_t height;
+} fb_screen_size_t;
+
 /*
  * The value buffer can be any one of these types
  */
 typedef union {
   get_board_data_t get_board_data;
-  // get_arm_memory_t get_arm_memory;
+  get_arm_memory_t get_arm_memory;
+  get_clock_rate_t get_clock_rate;
+
+  // FB stuff
+  uint32_t fb_allocate_align;
+  fb_allocate_res_t fb_allocate_res;
+  fb_screen_size_t fb_screen_size;
+  uint32_t fb_bits_per_pixel;
+  uint32_t fb_bytes_per_row;
 } value_buffer_t;
 
 /*
  * A message_buffer can contain any number of these
  */
 typedef struct {
-    property_tag_t proptag;
-    value_buffer_t value_buffer;
+  property_tag_t proptag;
+  value_buffer_t value_buffer;
 } property_message_tag_t;
 
 /**
- * given an array of tags, will send all of the tags given, and will populate that array with the responses.
- * the given array should end with a "null tag" with the proptag field set to 0.
- * returns 0 on success
+ * given an array of tags, will send all of the tags given, and will populate
+ * that array with the responses. the given array should end with a "null tag"
+ * with the proptag field set to 0. returns 0 on success
  */
-int send_messages(property_message_tag_t * tags);
+int send_messages(property_message_tag_t* tags);
 
 #endif  // _MAILBOX

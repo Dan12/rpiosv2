@@ -83,3 +83,10 @@ void mcpy(void* dest, const void* src, int bytes) {
     *d++ = *s++;
   }
 }
+
+void mzero(void* dest, int bytes) {
+  char* d = dest;
+  while (bytes--) {
+    *d++ = 0;
+  }
+}

@@ -1,19 +1,23 @@
 #include <stdint.h>
-#include "uart.h"
-#include "stdlib.h"
+#include "atomics.h"
 #include "gpio.h"
-#include "timer.h"
 #include "interrupts.h"
-#include "memory.h"
 #include "mailbox.h"
+#include "memory.h"
+#include "stdlib.h"
+#include "timer.h"
+#include "uart.h"
+// #include "framebuffer.h"
+#include "gpu.h"
+#include "stdout.h"
 
 extern uint8_t __end;
 extern uint8_t __bss_start;
 extern uint8_t __bss_end;
 
-static int led_state = 1;
+static uint32_t led_state = 1;
 
-static volatile int times_entered = 0;
+static volatile uint32_t times_entered = 0;
 
 // ~.5 seconds
 void handle_timer() {
@@ -22,29 +26,7 @@ void handle_timer() {
   timer_set(500000);
 }
 
-void do_stuff() {
-  uart_init();
-  uart_puts("Hello, kernel World!\r\n");
-
-  // free space from __end to mem_size
-  uint32_t kernel_top = (uint32_t)&__end;
-
-  uart_puts(itoa(kernel_top, 16));
-  uart_puts("\r\n");
-
-  // uint32_t mem_size = get_mem_size((atag_t *) atags);
-  uint32_t mem_size = 1<<24;
-  uart_puts(itoa(mem_size, 16));
-  uart_puts("\r\n");
-
-  // interrupts_init();
-
-  timer_init(handle_timer);
-
-  gpio_led_init();
-
-  init_memory(kernel_top);
-
+void get_system_config() {
   property_message_tag_t tags[2];
   tags[0].proptag = GET_BOARD_REV;
   tags[0].value_buffer.get_board_data.bd = 0x12345678;
@@ -56,26 +38,65 @@ void do_stuff() {
   uart_puts("\r\n");
 
   uint32_t board_info = tags[0].value_buffer.get_board_data.bd;
-  uart_puts("board model: ");
+  uart_puts("board revision: ");
   uart_puts(itoa(board_info, 16));
   uart_puts("\r\n");
 
-  // tags[0].proptag = GET_ARM_MEMORY;
-  // tags[1].proptag = NULL_TAG;
+  tags[0].proptag = GET_ARM_MEMORY;
+  tags[1].proptag = NULL_TAG;
 
-  // res = send_messages(tags);
-  // uart_puts("tags resp: ");
-  // uart_puts(itoa(res, 16));
-  // uart_puts("\r\n");
+  res = send_messages(tags);
+  uart_puts("tags resp: ");
+  uart_puts(itoa(res, 16));
+  uart_puts("\r\n");
 
-  // uint32_t mem_start = tags[0].value_buffer.get_arm_memory.base_addr;
-  // uart_puts("mem start: ");
-  // uart_puts(itoa(mem_start, 16));
-  // uart_puts("\r\n");
-  // mem_size = tags[0].value_buffer.get_arm_memory.size;
-  // uart_puts("mem size: ");
-  // uart_puts(itoa(mem_size, 16));
-  // uart_puts("\r\n");
+  uint32_t mem_start = tags[0].value_buffer.get_arm_memory.base_addr;
+  uart_puts("mem start: ");
+  uart_puts(itoa(mem_start, 16));
+  uart_puts("\r\n");
+  uint32_t mem_size = tags[0].value_buffer.get_arm_memory.size;
+  uart_puts("mem size: ");
+  uart_puts(itoa(mem_size, 16));
+  uart_puts("\r\n");
+
+  tags[0].proptag = GET_CLOCK_RATE;
+  tags[0].value_buffer.get_clock_rate.clock_id = UART_CLOCK_ID;
+  tags[1].proptag = NULL_TAG;
+
+  res = send_messages(tags);
+  uart_puts("tags resp: ");
+  uart_puts(itoa(res, 16));
+  uart_puts("\r\n");
+
+  uint32_t uart_clock_rate = tags[0].value_buffer.get_clock_rate.rate;
+  uart_puts("uart clock rate: ");
+  uart_puts(itoa(uart_clock_rate, 16));
+  uart_puts("\r\n");
+
+  tags[0].proptag = FB_GET_PHYSICAL_DIMENSIONS;
+  tags[1].proptag = NULL_TAG;
+
+  res = send_messages(tags);
+  uart_puts("tags resp: ");
+  uart_puts(itoa(res, 16));
+  uart_puts("\r\n");
+
+  uint32_t width = tags[0].value_buffer.fb_screen_size.width;
+  uart_puts("width: ");
+  uart_puts(itoa(width, 16));
+  uart_puts("\r\n");
+
+  uint32_t height = tags[0].value_buffer.fb_screen_size.height;
+  uart_puts("height: ");
+  uart_puts(itoa(height, 16));
+  uart_puts("\r\n");
+}
+
+void do_stuff() {
+  prntf("Hello, kernel World!\r\n");
+  // uart_puts("Hello, kernel World!\r\n");
+
+  get_system_config();
 
   // timer_set(500000);
 
@@ -83,7 +104,7 @@ void do_stuff() {
     uart_putc(uart_getc());
     uart_puts("\r\n");
     uart_puts(itoa(get_time_high(), 16));
-    uart_puts(itoa(get_time_low(), 16)+2);
+    uart_puts(itoa(get_time_low(), 16) + 2);
     uart_puts("\r\n");
     uart_puts(itoa(times_entered, 10));
     uart_puts("\r\n");
@@ -92,21 +113,44 @@ void do_stuff() {
   }
 }
 
+void init_systems() {
+  // free space from __end to mem_size
+  uint32_t kernel_top = (uint32_t)&__end;
+
+  init_memory(kernel_top);
+
+  uart_init();
+
+  timer_init(handle_timer);
+
+  gpio_led_init();
+
+  gpu_init();
+  // framebuffer_init2();
+  // framebuffer_init();
+
+  // interrupts_init();
+}
+
 void kernel_main(uint32_t r0) {
+  // atomic_inc(&times_entered);
   times_entered++;
 
   // R0 should hold cpu info at start time (this should halt the )
   if ((r0 & 0x3) != 0) {
-    while(1) {
-      asm volatile ("wfi");
+    while (1) {
+      asm volatile("wfi");
     }
   }
 
   // as per c spec, unitialized bss must be zeroed out
   uint8_t* pBSS;
-	for (pBSS = &__bss_start; pBSS < &__bss_end; pBSS++) {
-		*pBSS = 0;
-	}
+  for (pBSS = &__bss_start; pBSS < &__bss_end; pBSS++) {
+    *pBSS = 0;
+  }
+
+  // init kernel systems
+  init_systems();
 
   do_stuff();
 }

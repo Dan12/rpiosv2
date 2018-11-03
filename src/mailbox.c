@@ -4,10 +4,12 @@
 #include "uart.h"
 #include "utils.h"
 
-#define flushcache() asm volatile \
-		("mcr p15, #0, %[zero], c7, c14, #0" : : [zero] "r" (0) )
-#define DataSyncBarrier()	asm volatile ("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory")
-#define DataMemBarrier() 	asm volatile ("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory")
+#define flushcache() \
+  asm volatile("mcr p15, #0, %[zero], c7, c14, #0" : : [zero] "r"(0))
+#define DataSyncBarrier() \
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" : : "r"(0) : "memory")
+#define DataMemBarrier() \
+  asm volatile("mcr p15, 0, %0, c7, c10, 5" : : "r"(0) : "memory")
 
 uint32_t mailbox_read(uint8_t channel) {
   // uint32_t stat;
@@ -46,11 +48,25 @@ void mailbox_send(uint32_t msg, uint8_t channel) {
  */
 static uint32_t get_value_buffer_len(property_message_tag_t* tag) {
   switch (tag->proptag) {
-    // case GET_ARM_MEMORY:
-    //   return 8;
+    case GET_ARM_MEMORY:
+    case GET_CLOCK_RATE:
+
+    // FB stuff
+    case FB_ALLOCATE_BUFFER:
+    case FB_GET_PHYSICAL_DIMENSIONS:
+    case FB_SET_PHYSICAL_DIMENSIONS:
+    case FB_GET_VIRTUAL_DIMENSIONS:
+    case FB_SET_VIRTUAL_DIMENSIONS:
+      return 8;
     case GET_BOARD_MODEL:
     case GET_BOARD_REV:
+
+    // FB stuff
+    case FB_GET_BITS_PER_PIXEL:
+    case FB_SET_BITS_PER_PIXEL:
+    case FB_GET_BYTES_PER_ROW:
       return 4;
+    case FB_RELESE_BUFFER:
     default:
       return 0;
   }

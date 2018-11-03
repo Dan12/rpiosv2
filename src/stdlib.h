@@ -13,4 +13,6 @@ int atoi(char * num);
 
 void mcpy(void* dest, const void* src, int bytes);
 
+void mzero(void* dest, int bytes);
+
 #endif // _STDLIB
