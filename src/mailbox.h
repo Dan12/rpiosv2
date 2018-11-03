@@ -4,22 +4,11 @@
 #if !defined(_MAILBOX)
 #define _MAILBOX
 
-#define MAILBOX_BASE PERIPHERAL_BASE + MAILBOX_OFFSET
-#define MAIL0_READ (((mail_message_t *)(0x00 + MAILBOX_BASE)))
-#define MAIL0_STATUS (((uint32_t *)(0x18 + MAILBOX_BASE)))
-#define MAIL0_WRITE (((mail_message_t *)(0x20 + MAILBOX_BASE)))
+#define MAILBOX_BASE (PERIPHERAL_BASE + MAILBOX_OFFSET)
+#define MAIL0_READ (0x00 + MAILBOX_BASE)
+#define MAIL0_STATUS (0x18 + MAILBOX_BASE)
+#define MAIL0_WRITE (0x20 + MAILBOX_BASE)
 #define PROPERTY_CHANNEL 8
-
-typedef struct {
-  uint8_t channel : 4;
-  uint32_t data : 28;
-} mail_message_t;
-
-typedef struct {
-  uint32_t reserved : 30;
-  uint8_t empty : 1;
-  uint8_t full : 1;
-} mail_status_t;
 
 /* Bit 31 set in status register if the write mailbox is full */
 #define MAILBOX_FULL 0x80000000
@@ -27,8 +16,8 @@ typedef struct {
 /* Bit 30 set in status register if the read mailbox is empty */
 #define MAILBOX_EMPTY 0x40000000
 
-mail_message_t mailbox_read(uint8_t channel);
-void mailbox_send(mail_message_t msg, uint8_t channel);
+uint32_t mailbox_read(uint8_t channel);
+void mailbox_send(uint32_t msg, uint8_t channel);
 
 /**
  * A property message can either be a request, or a response, and a response can
@@ -60,6 +49,7 @@ typedef enum {
   NULL_TAG = 0,
   GET_BOARD_MODEL = 0x00010001,
   GET_BOARD_REV = 0x00010002,
+  GET_ARM_MEMORY = 0x00010005,
 } property_tag_t;
 
 /**
@@ -70,11 +60,17 @@ typedef struct {
   uint32_t bd;
 } get_board_data_t;
 
+typedef struct {
+  uint32_t base_addr;
+  uint32_t size;
+} get_arm_memory_t;
+
 /*
  * The value buffer can be any one of these types
  */
 typedef union {
   get_board_data_t get_board_data;
+  // get_arm_memory_t get_arm_memory;
 } value_buffer_t;
 
 /*

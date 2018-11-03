@@ -60,6 +60,23 @@ void do_stuff() {
   uart_puts(itoa(board_info, 16));
   uart_puts("\r\n");
 
+  // tags[0].proptag = GET_ARM_MEMORY;
+  // tags[1].proptag = NULL_TAG;
+
+  // res = send_messages(tags);
+  // uart_puts("tags resp: ");
+  // uart_puts(itoa(res, 16));
+  // uart_puts("\r\n");
+
+  // uint32_t mem_start = tags[0].value_buffer.get_arm_memory.base_addr;
+  // uart_puts("mem start: ");
+  // uart_puts(itoa(mem_start, 16));
+  // uart_puts("\r\n");
+  // mem_size = tags[0].value_buffer.get_arm_memory.size;
+  // uart_puts("mem size: ");
+  // uart_puts(itoa(mem_size, 16));
+  // uart_puts("\r\n");
+
   // timer_set(500000);
 
   while (1) {
