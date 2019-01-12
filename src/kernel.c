@@ -4,7 +4,7 @@
 #include "mailbox.h"
 #include "memory.h"
 #include "stdlib.h"
-#include "timer.h"
+#include "sys_timer.h"
 #include "uart.h"
 #include "gpu.h"
 #include "stdout.h"
@@ -93,26 +93,19 @@ void dump(uint32_t* pos, uint32_t num) {
   }
 }
 
-void bad_delay(int time) {
-  int ra = 0;
-  while(ra++ < time)
-    asm volatile ("nop");
-}
-
 void do_stuff() {
   prntf("Hello, kernel World!\r\n");
   // uart_puts("Hello, kernel World!\r\n");
 
   get_system_config();
 
-  // init_timer();
+  arm_timer_init(0x00001800);
 
   int i = 0;
   while(1) {
     prntf("hello %d\r\n", i++);
     gpio_invert_led_2();
-    // udelay(500000);
-    bad_delay(1000000);
+    udelay(1000000);
   }
 
   while (1) {
@@ -136,13 +129,13 @@ void init_systems() {
 
   uart_init();
 
-  timer_init();
+  sys_timer_init();
 
   gpio_led_init();
 
   gpu_init();
 
-  // interrupts_init();
+  interrupts_init();
 }
 
 void kernel_main(uint32_t r0) {

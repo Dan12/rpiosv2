@@ -1,8 +1,8 @@
-#include "timer.h"
+#include "sys_timer.h"
 
 static timer_registers_t *timer_regs;
 
-void timer_init() {
+void sys_timer_init() {
   timer_regs = (timer_registers_t *)SYSTEM_TIMER_BASE;
 }
 

@@ -6,7 +6,7 @@
 
 #define SYSTEM_TIMER_BASE (SYSTEM_TIMER_OFFSET + PERIPHERAL_BASE)
 
-void timer_init();
+void sys_timer_init();
 
 void udelay(uint32_t usecs);
 

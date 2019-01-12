@@ -20,29 +20,29 @@ void interrupts_init(void) {
   interrupt_regs->irq_basic_disable = 0xffffffff;  // disable all interrupts
   interrupt_regs->irq_gpu_disable1 = 0xffffffff;
   interrupt_regs->irq_gpu_disable2 = 0xffffffff;
-  move_exception_vector();
+  // move_exception_vector();
   ENABLE_INTERRUPTS();
 }
+
+#define ARM_TIMER_CLI 0x3F00B40C
 
 /**
  * this function is going to be called by the processor.  Needs to check pending
  * interrupts and execute handlers if one is registered
  */
-void irq_handler(void) {
+void c_irq_handler(void) {
   // prntf("An interrupt!!\r\n");
-  gpio_invert_led();
-  mmio_write(armTimerIRQClear, 0);
-  // int j;
-  // for (j = 0; j < NUM_IRQS; j++) {
-  //   // If the interrupt is pending and there is a handler, run the handler
-  //   if (IRQ_IS_PENDING(interrupt_regs, j) && (handlers[j] != 0)) {
-  //     clearers[j]();
-  //     ENABLE_INTERRUPTS();
-  //     handlers[j]();
-  //     DISABLE_INTERRUPTS();
-  //     return;
-  //   }
-  // }
+  int j;
+  for (j = 0; j < NUM_IRQS; j++) {
+    // If the interrupt is pending and there is a handler, run the handler
+    if (IRQ_IS_PENDING(interrupt_regs, j) && (handlers[j] != 0)) {
+      clearers[j]();
+      ENABLE_INTERRUPTS();
+      handlers[j]();
+      DISABLE_INTERRUPTS();
+      return;
+    }
+  }
 }
 
 void __attribute__((interrupt("IRQ"))) irq_handler_v(void) {

@@ -9,6 +9,6 @@
 #define armTimerControl (INTERRUPTS_BASE + 0x408)
 #define armTimerIRQClear (INTERRUPTS_BASE + 0x40c)
 
-void init_timer();
+void arm_timer_init(uint32_t value);
 
 #endif // _ARM_TIMER
