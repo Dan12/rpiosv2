@@ -1,5 +1,9 @@
 #include "interrupts.h"
 #include "stdlib.h"
+#include "gpio.h"
+#include "utils.h"
+#include "arm_timer.h"
+#include "stdout.h"
 
 static interrupt_registers_t *interrupt_regs;
 
@@ -25,17 +29,24 @@ void interrupts_init(void) {
  * interrupts and execute handlers if one is registered
  */
 void irq_handler(void) {
-  int j;
-  for (j = 0; j < NUM_IRQS; j++) {
-    // If the interrupt is pending and there is a handler, run the handler
-    if (IRQ_IS_PENDING(interrupt_regs, j) && (handlers[j] != 0)) {
-      clearers[j]();
-      ENABLE_INTERRUPTS();
-      handlers[j]();
-      DISABLE_INTERRUPTS();
-      return;
-    }
-  }
+  // prntf("An interrupt!!\r\n");
+  gpio_invert_led();
+  mmio_write(armTimerIRQClear, 0);
+  // int j;
+  // for (j = 0; j < NUM_IRQS; j++) {
+  //   // If the interrupt is pending and there is a handler, run the handler
+  //   if (IRQ_IS_PENDING(interrupt_regs, j) && (handlers[j] != 0)) {
+  //     clearers[j]();
+  //     ENABLE_INTERRUPTS();
+  //     handlers[j]();
+  //     DISABLE_INTERRUPTS();
+  //     return;
+  //   }
+  // }
+}
+
+void __attribute__((interrupt("IRQ"))) irq_handler_v(void) {
+  *(volatile uint32_t*) 0x3F00B40c = 0;
 }
 
 void __attribute__((interrupt("ABORT"))) reset_handler(void) {

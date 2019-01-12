@@ -1,30 +1,21 @@
 #include <stdint.h>
 #include "atomics.h"
 #include "gpio.h"
-#include "interrupts.h"
 #include "mailbox.h"
 #include "memory.h"
 #include "stdlib.h"
 #include "timer.h"
 #include "uart.h"
-// #include "framebuffer.h"
 #include "gpu.h"
 #include "stdout.h"
+#include "interrupts.h"
+#include "arm_timer.h"
 
 extern uint8_t __end;
 extern uint8_t __bss_start;
 extern uint8_t __bss_end;
 
-static uint32_t led_state = 1;
-
 static volatile uint32_t times_entered = 0;
-
-// ~.5 seconds
-void handle_timer() {
-  gpio_write_led(led_state);
-  led_state = !led_state;
-  timer_set(500000);
-}
 
 void get_system_config() {
   property_message_tag_t tags[2];
@@ -92,13 +83,37 @@ void get_system_config() {
   uart_puts("\r\n");
 }
 
+void dump(uint32_t* pos, uint32_t num) {
+  uint32_t i;
+  for (i = 0; i < num; i++) {
+    if (i % 4 == 0) {
+      prntf("\r\n");
+    }
+    prntf("%x ", *(pos+i));
+  }
+}
+
+void bad_delay(int time) {
+  int ra = 0;
+  while(ra++ < time)
+    asm volatile ("nop");
+}
+
 void do_stuff() {
   prntf("Hello, kernel World!\r\n");
   // uart_puts("Hello, kernel World!\r\n");
 
   get_system_config();
 
-  // timer_set(500000);
+  // init_timer();
+
+  int i = 0;
+  while(1) {
+    prntf("hello %d\r\n", i++);
+    gpio_invert_led_2();
+    // udelay(500000);
+    bad_delay(1000000);
+  }
 
   while (1) {
     uart_putc(uart_getc());
@@ -108,8 +123,8 @@ void do_stuff() {
     uart_puts("\r\n");
     uart_puts(itoa(times_entered, 10));
     uart_puts("\r\n");
-    gpio_write_led(led_state);
-    led_state = !led_state;
+    gpio_invert_led();
+    gpio_invert_led_2();
   }
 }
 
@@ -121,13 +136,11 @@ void init_systems() {
 
   uart_init();
 
-  timer_init(handle_timer);
+  timer_init();
 
   gpio_led_init();
 
   gpu_init();
-  // framebuffer_init2();
-  // framebuffer_init();
 
   // interrupts_init();
 }
