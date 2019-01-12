@@ -95,7 +95,6 @@ void dump(uint32_t* pos, uint32_t num) {
 
 void do_stuff() {
   prntf("Hello, kernel World!\r\n");
-  // uart_puts("Hello, kernel World!\r\n");
 
   get_system_config();
 

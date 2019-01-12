@@ -1,4 +1,4 @@
-TOOLCHAIN = ../gcc-arm/gcc-arm-none-eabi-7-2017-q4-major/bin/arm-none-eabi
+TOOLCHAIN = /vagrant/files/rpios/gcc-arm/gcc-arm-none-eabi-7-2017-q4-major/bin/arm-none-eabi
 CC = $(TOOLCHAIN)-gcc
 OBJCOPY = $(TOOLCHAIN)-objcopy-cpd
 

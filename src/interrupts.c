@@ -20,18 +20,14 @@ void interrupts_init(void) {
   interrupt_regs->irq_basic_disable = 0xffffffff;  // disable all interrupts
   interrupt_regs->irq_gpu_disable1 = 0xffffffff;
   interrupt_regs->irq_gpu_disable2 = 0xffffffff;
-  // move_exception_vector();
   ENABLE_INTERRUPTS();
 }
-
-#define ARM_TIMER_CLI 0x3F00B40C
 
 /**
  * this function is going to be called by the processor.  Needs to check pending
  * interrupts and execute handlers if one is registered
  */
 void c_irq_handler(void) {
-  // prntf("An interrupt!!\r\n");
   int j;
   for (j = 0; j < NUM_IRQS; j++) {
     // If the interrupt is pending and there is a handler, run the handler
@@ -43,41 +39,6 @@ void c_irq_handler(void) {
       return;
     }
   }
-}
-
-void __attribute__((interrupt("IRQ"))) irq_handler_v(void) {
-  *(volatile uint32_t*) 0x3F00B40c = 0;
-}
-
-void __attribute__((interrupt("ABORT"))) reset_handler(void) {
-  // printf("RESET HANDLER\n");
-  while (1)
-    ;
-}
-void __attribute__((interrupt("ABORT"))) prefetch_abort_handler(void) {
-  // printf("PREFETCH ABORT HANDLER\n");
-  while (1)
-    ;
-}
-void __attribute__((interrupt("ABORT"))) data_abort_handler(void) {
-  // printf("DATA ABORT HANDLER\n");
-  while (1)
-    ;
-}
-void __attribute__((interrupt("UNDEF"))) undefined_instruction_handler(void) {
-  // printf("UNDEFINED INSTRUCTION HANDLER\n");
-  while (1)
-    ;
-}
-void __attribute__((interrupt("SWI"))) software_interrupt_handler(void) {
-  // printf("SWI HANDLER\n");
-  while (1)
-    ;
-}
-void __attribute__((interrupt("FIQ"))) fast_irq_handler(void) {
-  // printf("FIQ HANDLER\n");
-  while (1)
-    ;
 }
 
 void register_irq_handler(irq_number_t irq_num, interrupt_handler_f handler, interrupt_clearer_f clearer) {

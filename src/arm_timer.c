@@ -5,7 +5,7 @@
 
 void handler() {
   gpio_invert_led();
-  prntf("An int!\r\n");
+  prntf("interrupt handler!\r\n");
 }
 
 void clearer() {

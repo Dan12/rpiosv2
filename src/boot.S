@@ -1,15 +1,17 @@
 .section ".text.boot"
 
 .global _start
+// put interrupt vector at 0x8000
 _start:
-    ldr pc,reset_handler
-    ldr pc,undefined_handler
-    ldr pc,swi_handler
-    ldr pc,prefetch_handler
-    ldr pc,data_handler
-    ldr pc,hyp_handler
-    ldr pc,irq_handler
-    ldr pc,fiq_handler
+  // first instruction jumps to reset handler, which is where we want to go on startup
+  ldr pc,reset_handler
+  ldr pc,undefined_handler
+  ldr pc,swi_handler
+  ldr pc,prefetch_handler
+  ldr pc,data_handler
+  ldr pc,hyp_handler
+  ldr pc,irq_handler
+  ldr pc,fiq_handler
 reset_handler:      .word reset
 undefined_handler:  .word hang
 swi_handler:        .word hang
@@ -24,15 +26,17 @@ reset:
   // the top of this file is at that address, so everything works out and we don't
   // have to copy over stuff
   mov r0,#0x8000
-  MCR p15, 4, r0, c12, c0, 0
+  mcr p15, 4, r0, c12, c0, 0
 
+  // get the core number
   mrc p15, #0, r0, c0, c0, #5
 
-  // set the stack pointer
+  // set the stack pointer (grows down)
   mov sp, #0x8000
 
   // Call kernel_main (should never return)
   bl kernel_main
+// if it does return, just hang here
 hang: b hang
 
 irq:
