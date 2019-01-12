@@ -36,6 +36,8 @@ https://github.com/dwelch67/raspberrypi
 
 ## TODO
 
+Abilities I'd like to add on day:
+
 USB
 
 File System

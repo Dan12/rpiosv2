@@ -60,7 +60,7 @@ void gpu_init(void) {
   // static const pixel_t BLACK = {0x00, 0x00, 0x00};
   static const pixel_t BLUE = {0x00, 0x00, 0xff};
   // static const pixel_t RED = {0xff, 0x00, 0x00};
-  // // Aparantly, this sometimes does not work, so try in a loop
+  // Aparantly, this sometimes does not work, so try in a loop
   while (framebuffer_init() != 0) {
     uart_puts("Had to try again");
     uart_puts("\r\n");

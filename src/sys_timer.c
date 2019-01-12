@@ -14,6 +14,7 @@ __attribute__((optimize(0))) uint32_t get_time_high() {
   return timer_regs->counter_high;
 }
 
+// busy loop to create delay using the system timer
 __attribute__((optimize(0))) void udelay(uint32_t usecs) {
   volatile uint32_t curr = timer_regs->counter_low;
   volatile uint32_t x = timer_regs->counter_low - curr;

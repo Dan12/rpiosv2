@@ -35,14 +35,14 @@ void bootloader_main(void) {
   // 0 -> type
   // if type == 1
   // 1-4 -> address
-  // 5 -> data
+  // 5-8 -> data
   // if type == 2
   // 1-4 -> address to jump to
-  // 5 -> 0xff
+  // 5-8 -> 0xff
   // if type == 4
   // 1-4 -> address to read
-  // 5 -> 0xff
-  // 6 -> xor of previous 9 bytes
+  // 5-8 -> 0xff
+  // 9 -> xor of previous 9 bytes
 
   int pidx = 0;
 
@@ -52,23 +52,27 @@ void bootloader_main(void) {
       pidx = 0;
       unsigned char cs = 0;
       int i;
+      // calculate check sum
       for(i = 0; i < 9; i++) {
         cs = cs ^ packet[i];
       }
+      // make sure check sum is correct
       if (cs == packet[9]) {
         uint32_t p1 = 0;
+        // all packets have an address
         for (i = 4; i >= 1; i--) {
           p1 <<= 8;
           p1 |= packet[i];
         }
-        // uint8_t p2 = packet[5];
         if (packet[0] == 1) {
+          // store the 4 bytes at the designated location
           for (i = 0; i < 4; i++) {
             *(((uint8_t*) p1) + i) = packet[5+i];
           }
         } else if (packet[0] == 2) {
           if (packet[5] == 0xff) {
             // dump((uint8_t*)0x8000, 0x100);
+            // jump to the designated location (usually 0x8000)
             BRANCHTO(p1);
           } else {
             // invalid jump
@@ -77,6 +81,7 @@ void bootloader_main(void) {
           }
         } else if (packet[0] == 4) {
           if (packet[5] == 0xff) {
+            // read the specified byte
             uart_putc(0x88);
             uart_putc((unsigned char) *(((uint8_t*)p1)));
           } else {

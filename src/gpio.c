@@ -4,7 +4,9 @@
 
 void gpio_led_init() {
   // init the led select function
+  // init green led
   mmio_write(GPFSEL4, 1 << 21);
+  // init red led
   mmio_write(GPFSEL3, 1 << 15);
   // default on
   gpio_invert_led_2();

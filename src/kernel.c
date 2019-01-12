@@ -124,6 +124,8 @@ void init_systems() {
   // free space from __end to mem_size
   uint32_t kernel_top = (uint32_t)&__end;
 
+  // the heap will be from the end of the text/data/bss segment
+  // to the end of memory (growing up)
   init_memory(kernel_top);
 
   uart_init();
