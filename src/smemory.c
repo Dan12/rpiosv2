@@ -6,6 +6,7 @@ static uint32_t heap_size;
 typedef struct mem_block {
   uint32_t size;
   struct mem_block* next_block;
+  uint64_t padding;
 } mem_block;
 
 static mem_block* block_list_head;
@@ -50,13 +51,13 @@ void toggle_alloc(mem_block* block) {
 // s prefix for simple memory allocator
 
 void* salloc(uint32_t size) {
-  // round up to nearest multiple of 8
-  size = ((size >> 3) + 1) << 3;
+  // round up to nearest multiple of 16
+  size = ((size >> 16) + 1) << 16;
 
   mem_block* block = block_list_head;
   while(block) {
     if (is_free(block) && block->size >= size) {
-      if (block->size >= size+sizeof(mem_block)+8) {
+      if (block->size >= size+sizeof(mem_block)+16) {
         split(block, size);
       }
       toggle_alloc(block);

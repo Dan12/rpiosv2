@@ -123,77 +123,6 @@ void do_stuff() {
   }
 }
 
-void check_int(unsigned char* ptr, unsigned char size) {
-  unsigned char i;
-  for (i = 0; i < size; i++) {
-    if (ptr[i] != i) {
-      uart_puts("memory error");
-    }
-  }
-}
-
-void fill_int(unsigned char* ptr, unsigned char size) {
-  unsigned char i;
-  for (i = 0; i < size; i++) {
-    ptr[i] = i;
-  }
-}
-
-void mem_test(uint32_t ptr) {
-  mzero((void*) ptr, 0x1000);
-  init_smemory(ptr, 0x100000);
-  dump((uint32_t*) ptr, 32);
-
-  // unsigned char* ptr1 = salloc(15);
-  // dump((uint32_t*) ptr, 32);
-  // fill_int(ptr1, 15);
-  // sfree(ptr1);
-  // dump((uint32_t*) ptr, 32);
-
-  // ptr1 = salloc(7);
-  // fill_int(ptr1,7);
-  // unsigned char* ptr2 = salloc(17);
-  // fill_int(ptr2,17);
-  // dump((uint32_t*) ptr, 32);
-  // unsigned char* ptr3 = salloc(2);
-  // fill_int(ptr3,2);
-  // check_int(ptr1,7);
-  // check_int(ptr2,17);
-  // check_int(ptr3,2);
-  // dump((uint32_t*) ptr, 32);
-  // sfree(ptr1);
-  // check_int(ptr2,17);
-  // check_int(ptr3,2);
-  // dump((uint32_t*) ptr, 32);
-  // sfree(ptr3);
-  // check_int(ptr2,17);
-  // dump((uint32_t*) ptr, 32);
-  // sfree(ptr2);
-  // dump((uint32_t*) ptr, 32);
-
-  unsigned char* ptrs[20];
-  int i;
-  for (i = 0; i < 20; i++) {
-    ptrs[i] = NULL;
-  }
-
-  for (i = 0; i < 100; i++) {
-    int idx = (i*17) % 20;
-    if (ptrs[idx] == NULL) {
-      int size = (idx*31) % 30;
-      ptrs[idx] = salloc(size);
-      if (ptrs[idx] != NULL) {
-        fill_int(ptrs[idx], size);
-      }
-    } else {
-      int size = (idx*31) % 30;
-      check_int(ptrs[idx], size);
-      sfree(ptrs[idx]);
-      ptrs[idx] = NULL;
-    }
-  }
-}
-
 void init_systems() {
   // free space from __end to mem_size
   uint32_t kernel_top = (uint32_t)&__end;
@@ -201,8 +130,8 @@ void init_systems() {
   // the heap will be from the end of the text/data/bss segment
   // to the end of memory (growing up)
   // 0x100000 is kinda arbitrary rn but 1mb should be enough
-  // could use the tags to more accuratel determine memory size
-  init_memory(kernel_top);
+  // could use the tags to more accurately determine memory size
+  init_smemory(kernel_top, 0x100000);
 
   uart_init();
 
@@ -213,8 +142,6 @@ void init_systems() {
   gpu_init();
 
   interrupts_init();
-
-  mem_test(kernel_top+0x100000);
 }
 
 void kernel_main(uint32_t r0) {

@@ -1,7 +1,6 @@
 #include "mailbox.h"
-#include "memory.h"
+#include "smemory.h"
 #include "stdlib.h"
-#include "uart.h"
 #include "utils.h"
 
 uint32_t mailbox_read(uint8_t channel) {
@@ -81,7 +80,7 @@ int send_messages(property_message_tag_t* tags) {
   // buffer size must be 16 byte aligned
   bufsize += (bufsize % 16) ? 16 - (bufsize % 16) : 0;
 
-  msg = get_mem(bufsize);
+  msg = salloc(bufsize);
   if (!msg) return -1;
 
   msg->size = bufsize;
@@ -105,12 +104,12 @@ int send_messages(property_message_tag_t* tags) {
   mail = mailbox_read(PROPERTY_CHANNEL);
 
   if (msg->req_res_code == REQUEST) {
-    // kfree(msg);
+    sfree(msg);
     return 1;
   }
   // Check the response code
   if (msg->req_res_code == RESPONSE_ERROR) {
-    // kfree(msg);
+    sfree(msg);
     return 2;
   }
 
@@ -123,10 +122,10 @@ int send_messages(property_message_tag_t* tags) {
       bufpos += len / 4;
     }
 
-    // kfree(msg);
+    sfree(msg);
     return 0;
   } else {
-    // kfree(msg);
+    sfree(msg);
     return -1;
   }
 }
