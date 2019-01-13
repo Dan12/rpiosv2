@@ -11,7 +11,8 @@
 #include "interrupts.h"
 #include "arm_timer.h"
 #include "smemory.h"
-#include "minithread.h"
+#include "process.h"
+#include "synch.h"
 
 extern uint8_t __end;
 extern uint8_t __bss_start;
@@ -85,10 +86,28 @@ void get_system_config() {
   uart_puts("\r\n");
 }
 
-int some_thing(arg_t arg) {
-  prntf("Running a new thread\r\n");
+semaphore_t* sema;
+
+int proc_1(arg_t arg) {
+  prntf("Running proc 1-1\r\n");
+  semaphore_P(sema);
+  prntf("Running proc 1-2\r\n");
+  return 0;
+}
+
+int proc_2(arg_t arg) {
+  prntf("Running proc 2-1\r\n");
+  semaphore_V(sema);
+  prntf("Running proc 2-2\r\n");
+  return 0;
+}
+
+int main_proc(arg_t arg) {
+  sema = semaphore_create(0);
+  prntf("Running main proc\r\n");
   prntf("Interrupts: %d\r\n", INTERRUPTS_ENABLED());
-  minithread_yield();
+  process_fork(proc_1, NULL);
+  process_fork(proc_2, NULL);
   return 0;
 }
 
@@ -98,7 +117,7 @@ void do_stuff() {
   get_system_config();
 
   // arm_timer_init(0x00001800);
-  minithread_system_initialize(some_thing, (arg_t) 0xdeadbeef);
+  process_system_initialize(main_proc, NULL);
 
   int i = 0;
   while(1) {
@@ -141,17 +160,7 @@ void init_systems() {
   interrupts_init();
 }
 
-void kernel_main(uint32_t r0) {
-  // atomic_inc(&times_entered);
-  times_entered++;
-
-  // R0 should hold cpu info at start time (this should halt the )
-  if ((r0 & 0x3) != 0) {
-    while (1) {
-      asm volatile("wfi");
-    }
-  }
-
+void kernel_main(void) {
   // as per c spec, unitialized bss must be zeroed out
   uint8_t* pBSS;
   for (pBSS = &__bss_start; pBSS < &__bss_end; pBSS++) {

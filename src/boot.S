@@ -28,9 +28,6 @@ reset:
   mov r0,#0x8000
   mcr p15, 4, r0, c12, c0, 0
 
-  // get the core number
-  mrc p15, #0, r0, c0, c0, #5
-
   // set the stack pointer (grows down)
   mov sp, #0x8000
 
@@ -60,7 +57,3 @@ context_switch:
   // this should reenable interrupts since you can never context switch while interrupts are disabled
   msr     cpsr_c, r12
   pop     {lr, pc}
-
-.global jump
-jump:
-  bx r0

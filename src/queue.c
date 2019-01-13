@@ -1,8 +1,4 @@
 /*
- * (C) 2017, Cornell University
- * All rights reserved.
- */
-/*
  * Generic queue implementation.
  *
  */

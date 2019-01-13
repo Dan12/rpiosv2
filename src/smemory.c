@@ -52,7 +52,7 @@ void toggle_alloc(mem_block* block) {
 
 void* salloc(uint32_t size) {
   // round up to nearest multiple of 16
-  size = ((size >> 16) + 1) << 16;
+  size = ((size >> 4) + 1) << 4;
 
   mem_block* block = block_list_head;
   while(block) {
