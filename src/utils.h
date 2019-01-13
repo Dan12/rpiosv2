@@ -19,4 +19,11 @@ static inline void delay(int32_t count) {
                : "cc");
 }
 
+#define flushcache() \
+  asm volatile("mcr p15, #0, %[zero], c7, c14, #0" : : [zero] "r"(0))
+#define DataSyncBarrier() \
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" : : "r"(0) : "memory")
+#define DataMemBarrier() \
+  asm volatile("mcr p15, 0, %0, c7, c10, 5" : : "r"(0) : "memory")
+
 #endif // _UTILS
