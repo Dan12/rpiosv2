@@ -31,6 +31,21 @@ __inline__ void DISABLE_INTERRUPTS(void) {
     }
 }
 
+typedef int interrupt_level_t;
+
+#define DISABLED 0
+#define ENABLED 1
+
+__inline__ interrupt_level_t SET_INTERRUPT_LEVEL(int en) {
+    int is_en = INTERRUPTS_ENABLED();
+    if (en) {
+        ENABLE_INTERRUPTS();
+    } else {
+        DISABLE_INTERRUPTS();
+    }
+    return is_en;
+}
+
 typedef void (*interrupt_handler_f)(void);
 typedef void (*interrupt_clearer_f)(void);
 

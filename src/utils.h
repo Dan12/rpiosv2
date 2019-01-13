@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "stdout.h"
 
 #if !defined(_UTILS)
 #define _UTILS
@@ -17,6 +18,18 @@ static inline void delay(int32_t count) {
                : "=r"(count)
                : [count] "0"(count)
                : "cc");
+}
+
+void dump(uint32_t* pos, uint32_t num) {
+  uint32_t i;
+  for (i = 0; i < num; i++) {
+    if (i % 4 == 0) {
+      prntf("\r\n");
+      prntf("%x: ", ((uint32_t) pos) + i*4);
+    }
+    prntf("%x ", *(pos+i));
+  }
+  prntf("\r\n");
 }
 
 #define flushcache() \

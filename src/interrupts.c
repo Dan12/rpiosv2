@@ -33,6 +33,7 @@ void c_irq_handler(void) {
     // If the interrupt is pending and there is a handler, run the handler
     if (IRQ_IS_PENDING(interrupt_regs, j) && (handlers[j] != 0)) {
       clearers[j]();
+      // enable interrupts to allow nesting of interrupts
       ENABLE_INTERRUPTS();
       handlers[j]();
       DISABLE_INTERRUPTS();

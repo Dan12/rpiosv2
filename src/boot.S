@@ -37,6 +37,7 @@ reset:
   // Call kernel_main (should never return)
   bl kernel_main
 // if it does return, just hang here
+.global hang
 hang: b hang
 
 irq:
@@ -46,3 +47,20 @@ irq:
   // use eret since we are probably in HYP mode due to new start.elf and bootcode.bin
   // also takes care of address realignmnet
   eret
+
+.global context_switch
+context_switch:
+  push    {lr}
+  push    {lr}
+  mrs     r12, cpsr
+  push    {r0-r12}
+  str     sp, [r0]
+  ldr     sp, [r1]
+  pop     {r0-r12}
+  // this should reenable interrupts since you can never context switch while interrupts are disabled
+  msr     cpsr_c, r12
+  pop     {lr, pc}
+
+.global jump
+jump:
+  bx r0

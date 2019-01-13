@@ -11,6 +11,7 @@
 #include "interrupts.h"
 #include "arm_timer.h"
 #include "smemory.h"
+#include "minithread.h"
 
 extern uint8_t __end;
 extern uint8_t __bss_start;
@@ -84,16 +85,11 @@ void get_system_config() {
   uart_puts("\r\n");
 }
 
-void dump(uint32_t* pos, uint32_t num) {
-  uint32_t i;
-  for (i = 0; i < num; i++) {
-    if (i % 4 == 0) {
-      prntf("\r\n");
-      prntf("%x: ", ((uint32_t) pos) + i*4);
-    }
-    prntf("%x ", *(pos+i));
-  }
-  prntf("\r\n");
+int some_thing(arg_t arg) {
+  prntf("Running a new thread\r\n");
+  prntf("Interrupts: %d\r\n", INTERRUPTS_ENABLED());
+  minithread_yield();
+  return 0;
 }
 
 void do_stuff() {
@@ -101,7 +97,8 @@ void do_stuff() {
 
   get_system_config();
 
-  arm_timer_init(0x00001800);
+  // arm_timer_init(0x00001800);
+  minithread_system_initialize(some_thing, (arg_t) 0xdeadbeef);
 
   int i = 0;
   while(1) {
