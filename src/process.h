@@ -22,4 +22,6 @@ process_t* get_current_process();
 
 void process_system_initialize(proc_t mainproc, arg_t mainarg);
 
+void proc_sleep_ms(int sleepms);
+
 #endif // _PROCESS

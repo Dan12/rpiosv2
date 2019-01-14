@@ -11,7 +11,7 @@
 
 void arm_timer_init();
 
-#define TIMER_PERIOD_US 100000
+#define TIMER_PERIOD_US 50000
 
 typedef void (*timer_handler)();
 void set_timer_handler(timer_handler handler);

@@ -55,6 +55,8 @@ typedef struct pcb {
   int pid;
   // needed to restore the thread's state
   proc_saved_state_t* current_stack_pointer;
+  // tick to awaken on
+  uint32_t awaken_tick;
 } pcb;
 
 // globals
@@ -66,6 +68,9 @@ int next_pid = 0;
 queue_t* run_queue;
 queue_t* dead_queue;
 semaphore_t *dead_queue_semaphore;
+
+int ticks;
+queue_t* tick_queue;
 
 #define STACKSIZE 0x8000
 
@@ -152,6 +157,7 @@ void schedule_next_process() {
 }
 
 int reaper_process(arg_t arg) {
+  prntf("Starting reaper with arg %d\r\n", arg);
   // never return
   while(1) {
     semaphore_P(dead_queue_semaphore);
@@ -180,13 +186,42 @@ void initalize_idle_process(){
 void init_queues() {
   run_queue = queue_new();
   dead_queue = queue_new();
+
+  tick_queue = queue_new();
+  ticks = 0;
 }
 
 void init_semaphores(){
   dead_queue_semaphore = semaphore_create(0);
 }
 
+int should_awaken(void* proc, void* tick) {
+  return ((pcb*) proc)->awaken_tick <= (uint32_t) tick;
+}
+
+void proc_sleep_ms(int sleepms) {
+  interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
+
+  process_t* curr_proc = get_current_process();
+  curr_proc->awaken_tick = sleepms/(TIMER_PERIOD_US/1000) + ticks;
+  queue_append(tick_queue, curr_proc);
+
+  SET_INTERRUPT_LEVEL(prev_level);
+
+  process_stop();
+}
+
 void clock_handler() {
+  interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
+  ticks++;
+
+  process_t* proc_to_awaken;
+  while(queue_find(tick_queue, should_awaken, (void*) ticks, (void**) &proc_to_awaken) == 0) {
+    queue_delete_fast(tick_queue, proc_to_awaken);
+    process_start(proc_to_awaken);
+  }
+
+  SET_INTERRUPT_LEVEL(prev_level);
   process_yield();
 }
 
