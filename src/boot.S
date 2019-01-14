@@ -45,7 +45,13 @@ data_abort_expn_handler:
 
 irq:
   push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,lr}
+  mrs r0, ELR_hyp
+  mrs r1, cpsr
+  push {r0, r1}
   bl c_irq_handler
+  pop {r0, r1}
+  msr ELR_hyp, r0 
+  msr cpsr, r1
   pop  {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,lr}
   // use eret since we are probably in HYP mode due to new start.elf and bootcode.bin
   // also takes care of address realignmnet
@@ -61,7 +67,7 @@ context_switch:
   str     sp, [r0]
   ldr     sp, [r1]
   pop     {r12}
-  msr     cpsr_c, r12
+  msr     cpsr, r12
   pop     {r0-r12}
   pop     {lr, pc}
 

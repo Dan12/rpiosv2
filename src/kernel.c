@@ -94,6 +94,7 @@ int proc_2(arg_t arg) {
     prntf("hello from 2 %d\r\n", i++);
     gpio_invert_led_2();
     proc_sleep_ms(1500);
+    // udelay(2000000);
   }
   return 0;
 }
@@ -104,6 +105,7 @@ int proc_1(arg_t arg) {
     prntf("hello from 1 %d\r\n", i++);
     gpio_invert_led();
     proc_sleep_ms(750);
+    // udelay(1000000);
   }
   return 0;
 }
