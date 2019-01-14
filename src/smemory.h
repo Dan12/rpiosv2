@@ -11,4 +11,6 @@ void* salloc(uint32_t size);
 
 void sfree(void* ptr);
 
+void dump(uint32_t* pos, uint32_t num);
+
 #endif // _SMEMORY

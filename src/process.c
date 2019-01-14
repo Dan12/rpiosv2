@@ -20,10 +20,12 @@
 #include "stdlib.h"
 #include "utils.h"
 #include "synch.h"
+#include "arm_timer.h"
 
 typedef void* stack_pointer_t;
 
 typedef struct {  // lower memory address
+    uint32_t cpsr;
     uint32_t r0;
     uint32_t r1; 
     uint32_t r2; 
@@ -36,7 +38,7 @@ typedef struct {  // lower memory address
     uint32_t r9;
     uint32_t r10;
     uint32_t r11;
-    uint32_t cpsr; // techincally r12
+    uint32_t r12;
     uint32_t cleanup;
     uint32_t lr;  // higher memory address
 } proc_saved_state_t;
@@ -68,6 +70,7 @@ semaphore_t *dead_queue_semaphore;
 #define STACKSIZE 0x8000
 
 void cleanup() {
+  SET_INTERRUPT_LEVEL(DISABLED);
   queue_append(dead_queue, get_current_process());
 
   semaphore_V(dead_queue_semaphore);
@@ -82,7 +85,9 @@ process_t* process_fork(proc_t proc, arg_t arg) {
 }
 
 void process_start(process_t *t) {
+  interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
   queue_append(run_queue, t);
+  SET_INTERRUPT_LEVEL(prev_level);
 }
 
 void process_stop() {
@@ -97,7 +102,9 @@ process_t* get_current_process() {
 process_t* create_process(proc_t proc, arg_t arg) {
   process_t *new_process = salloc(sizeof(process_t));
 
+  interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
   new_process->pid = next_pid++;
+  SET_INTERRUPT_LEVEL(prev_level);
 
   new_process->current_stack_pointer = NULL;
 
@@ -119,11 +126,12 @@ process_t* create_process(proc_t proc, arg_t arg) {
 void process_yield() {
   // invariant: the current process is not on the run queue
   process_start(get_current_process());
-
   schedule_next_process();
 }
 
 void schedule_next_process() {
+  SET_INTERRUPT_LEVEL(DISABLED);
+
   // get the current process
   process_t* cur_proc = get_current_process();
 
@@ -138,6 +146,9 @@ void schedule_next_process() {
   current_context_pcb = next_proc;
 
   context_switch(&cur_proc->current_stack_pointer, &next_proc->current_stack_pointer);
+
+  // enable interrupts after emerging from context switch
+  SET_INTERRUPT_LEVEL(ENABLED);
 }
 
 int reaper_process(arg_t arg) {
@@ -146,7 +157,9 @@ int reaper_process(arg_t arg) {
     semaphore_P(dead_queue_semaphore);
     
     process_t *to_free;
+    interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
     queue_dequeue(dead_queue, (void **) &to_free);
+    SET_INTERRUPT_LEVEL(prev_level);
 
     sfree(to_free->stackbase);
     sfree(to_free);
@@ -173,6 +186,10 @@ void init_semaphores(){
   dead_queue_semaphore = semaphore_create(0);
 }
 
+void clock_handler() {
+  process_yield();
+}
+
 void process_system_initialize(proc_t mainproc, arg_t mainarg) {
   init_queues();
   init_semaphores();
@@ -183,6 +200,9 @@ void process_system_initialize(proc_t mainproc, arg_t mainarg) {
   process_fork(reaper_process, NULL);
 
   process_fork(mainproc, mainarg);
+
+  set_timer_handler(clock_handler);
+  ENABLE_INTERRUPTS();
 
   // stop idle process
   process_stop();

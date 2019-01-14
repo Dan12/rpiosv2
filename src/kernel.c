@@ -88,55 +88,36 @@ void get_system_config() {
 
 semaphore_t* sema;
 
-int proc_1(arg_t arg) {
-  prntf("Running proc 1-1\r\n");
-  semaphore_P(sema);
-  prntf("Running proc 1-2\r\n");
+int proc_2(arg_t arg) {
+  int i = 0;
+  while(1) {
+    prntf("hello from 2 %d\r\n", i++);
+    // gpio_invert_led_2();
+    udelay(2000000);
+  }
   return 0;
 }
 
-int proc_2(arg_t arg) {
-  prntf("Running proc 2-1\r\n");
-  semaphore_V(sema);
-  prntf("Running proc 2-2\r\n");
+int proc_1(arg_t arg) {
+  int i = 0;
+  while(1) {
+    prntf("hello from 1 %d\r\n", i++);
+    // gpio_invert_led_2();
+    udelay(1000000);
+  }
   return 0;
 }
 
 int main_proc(arg_t arg) {
-  sema = semaphore_create(0);
+  prntf("Hello, kernel World!\r\n");
+
+  get_system_config();
+  
   prntf("Running main proc\r\n");
   prntf("Interrupts: %d\r\n", INTERRUPTS_ENABLED());
   process_fork(proc_1, NULL);
   process_fork(proc_2, NULL);
   return 0;
-}
-
-void do_stuff() {
-  prntf("Hello, kernel World!\r\n");
-
-  get_system_config();
-
-  // arm_timer_init(0x00001800);
-  process_system_initialize(main_proc, NULL);
-
-  int i = 0;
-  while(1) {
-    prntf("hello %d\r\n", i++);
-    gpio_invert_led_2();
-    udelay(1000000);
-  }
-
-  while (1) {
-    uart_putc(uart_getc());
-    uart_puts("\r\n");
-    uart_puts(itoa(get_time_high(), 16));
-    uart_puts(itoa(get_time_low(), 16) + 2);
-    uart_puts("\r\n");
-    uart_puts(itoa(times_entered, 10));
-    uart_puts("\r\n");
-    gpio_invert_led();
-    gpio_invert_led_2();
-  }
 }
 
 void init_systems() {
@@ -158,6 +139,8 @@ void init_systems() {
   gpu_init();
 
   interrupts_init();
+
+  arm_timer_init();
 }
 
 void kernel_main(void) {
@@ -170,5 +153,6 @@ void kernel_main(void) {
   // init kernel systems
   init_systems();
 
-  do_stuff();
+  // initialize processes
+  process_system_initialize(main_proc, NULL);
 }

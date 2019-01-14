@@ -3,9 +3,10 @@
 #include "uart.h"
 #include "gpu.h"
 #include "stdlib.h"
+#include "interrupts.h"
 
 void putc(char c) {
-    gpu_putc(c);
+    // gpu_putc(c);
     uart_putc(c);
 }
 
@@ -16,6 +17,7 @@ void puts(const char * str) {
 }
 
 void prntf(const char *fmt, ...) {
+  interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
   va_list args;
   va_start(args, fmt);
 
@@ -40,4 +42,5 @@ void prntf(const char *fmt, ...) {
   }
 
   va_end(args);
+  SET_INTERRUPT_LEVEL(prev_level);
 }

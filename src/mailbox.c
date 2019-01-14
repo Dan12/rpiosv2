@@ -11,14 +11,10 @@ uint32_t mailbox_read(uint8_t channel) {
   do {
     // Make sure there is mail to recieve
     do {
-      // flushcache();
-
     } while (mmio_read(MAIL0_STATUS) & MAILBOX_EMPTY);
 
     // Get the message
-    // dmb();
     res = mmio_read(MAIL0_READ);
-    // dmb();
   } while ((res & 0xF) != channel);
 
   return res;
@@ -27,11 +23,9 @@ uint32_t mailbox_read(uint8_t channel) {
 void mailbox_send(uint32_t msg, uint8_t channel) {
   // Make sure you can send mail
   do {
-    // flushcache();
   } while (mmio_read(MAIL0_STATUS) & MAILBOX_FULL);
 
   // send the message
-  // dmb();
   mmio_write(MAIL0_WRITE, msg | channel);
 }
 

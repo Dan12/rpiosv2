@@ -16,7 +16,7 @@ reset_handler:      .word reset
 undefined_handler:  .word hang
 swi_handler:        .word hang
 prefetch_handler:   .word hang
-data_handler:       .word hang
+data_handler:       .word data_abort_expn_handler
 hyp_handler:        .word hang
 irq_handler:        .word irq
 fiq_handler:        .word hang
@@ -37,6 +37,12 @@ reset:
 .global hang
 hang: b hang
 
+data_abort_expn_handler:
+  mrs r0, ELR_hyp
+  mov r1, r3
+  mov r2, fp
+  bl data_abort_expn
+
 irq:
   push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,lr}
   bl c_irq_handler
@@ -49,11 +55,17 @@ irq:
 context_switch:
   push    {lr}
   push    {lr}
-  mrs     r12, cpsr
   push    {r0-r12}
+  mrs     r12, cpsr
+  push    {r12}
   str     sp, [r0]
   ldr     sp, [r1]
-  pop     {r0-r12}
-  // this should reenable interrupts since you can never context switch while interrupts are disabled
+  pop     {r12}
   msr     cpsr_c, r12
+  pop     {r0-r12}
   pop     {lr, pc}
+
+.global get_cpsr
+get_cpsr:
+  mrs     r0, cpsr
+  bx lr

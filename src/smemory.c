@@ -1,7 +1,6 @@
 #include "smemory.h"
-
-static uint32_t heap_ptr;
-static uint32_t heap_size;
+#include "stdout.h"
+#include "interrupts.h"
 
 typedef struct mem_block {
   uint32_t size;
@@ -19,11 +18,11 @@ mem_block* blockify(uint32_t head_ptr, uint32_t given_size) {
   return block;
 }
 
-void init_smemory(uint32_t mem_ptr, uint32_t size) {
-  heap_ptr = mem_ptr;
-  heap_size = size;
+static uint32_t heap_ptr;
 
-  block_list_head = blockify(heap_ptr, heap_size);
+void init_smemory(uint32_t mem_ptr, uint32_t size) {
+  // block_list_head = blockify(mem_ptr, size);
+  heap_ptr = mem_ptr;
 }
 
 void insert_new_block(mem_block* block) {
@@ -51,26 +50,46 @@ void toggle_alloc(mem_block* block) {
 // s prefix for simple memory allocator
 
 void* salloc(uint32_t size) {
-  // round up to nearest multiple of 16
-  size = ((size >> 4) + 1) << 4;
+  // // round up to nearest multiple of 16
+  // size = ((size >> 4) + 1) << 4;
 
-  mem_block* block = block_list_head;
-  while(block) {
-    if (is_free(block) && block->size >= size) {
-      if (block->size >= size+sizeof(mem_block)+16) {
-        split(block, size);
-      }
-      toggle_alloc(block);
-      return (void*) (((uint8_t*) block) + sizeof(mem_block));
-    }
-    block = block->next_block;
-  }
-  return NULL;
+  // mem_block* block = block_list_head;
+  // while(block) {
+  //   if (is_free(block) && block->size >= size) {
+  //     if (block->size >= size+sizeof(mem_block)+16) {
+  //       split(block, size);
+  //     }
+  //     toggle_alloc(block);
+  //     return (void*) (((uint8_t*) block) + sizeof(mem_block));
+  //   }
+  //   block = block->next_block;
+  // }
+  // return NULL;
+
+  interrupt_level_t prev_level = SET_INTERRUPT_LEVEL(DISABLED);
+  size = ((size >> 4) + 1) << 4;	
+
+  void* ret = (void*) heap_ptr;	
+  heap_ptr += size;	
+  SET_INTERRUPT_LEVEL(prev_level);
+  return ret;
 }
 
 void sfree(void* ptr) {
-  if (ptr != NULL) {
-    mem_block* block = (mem_block*) (((uint8_t*) ptr) - sizeof(mem_block));
-    toggle_alloc(block);
+  // if (ptr != NULL) {
+  //   mem_block* block = (mem_block*) (((uint8_t*) ptr) - sizeof(mem_block));
+  //   toggle_alloc(block);
+  // }
+}
+
+void dump(uint32_t* pos, uint32_t num) {
+  uint32_t i;
+  for (i = 0; i < num; i++) {
+    if (i % 4 == 0) {
+      prntf("\r\n");
+      prntf("%x: ", ((uint32_t) pos) + i*4);
+    }
+    prntf("%x ", *(pos+i));
   }
+  prntf("\r\n");
 }

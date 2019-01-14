@@ -20,18 +20,6 @@ static inline void delay(int32_t count) {
                : "cc");
 }
 
-void dump(uint32_t* pos, uint32_t num) {
-  uint32_t i;
-  for (i = 0; i < num; i++) {
-    if (i % 4 == 0) {
-      prntf("\r\n");
-      prntf("%x: ", ((uint32_t) pos) + i*4);
-    }
-    prntf("%x ", *(pos+i));
-  }
-  prntf("\r\n");
-}
-
 #define flushcache() \
   asm volatile("mcr p15, #0, %[zero], c7, c14, #0" : : [zero] "r"(0))
 #define DataSyncBarrier() \

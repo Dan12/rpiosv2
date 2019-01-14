@@ -20,7 +20,6 @@ void interrupts_init(void) {
   interrupt_regs->irq_basic_disable = 0xffffffff;  // disable all interrupts
   interrupt_regs->irq_gpu_disable1 = 0xffffffff;
   interrupt_regs->irq_gpu_disable2 = 0xffffffff;
-  ENABLE_INTERRUPTS();
 }
 
 /**
@@ -40,6 +39,12 @@ void c_irq_handler(void) {
       return;
     }
   }
+}
+
+void data_abort_expn(int location, int sr1, int sr2) {
+  prntf("Data abort expn at address %x hex %x\r\n", location-8, *((uint32_t*) (location-8)));
+  prntf("Select registers %x - %x\r\n", sr1, sr2);
+  while(1);
 }
 
 void register_irq_handler(irq_number_t irq_num, interrupt_handler_f handler, interrupt_clearer_f clearer) {
