@@ -38,10 +38,17 @@ https://github.com/dwelch67/raspberrypi
 
 Abilities I'd like to add one day:
 
-USB
+MMU:
+https://github.com/dwelch67/raspberrypi/tree/master/mmu
+https://github.com/dwelch67/raspberrypi/pull/30/files
+
+USB Keyboard
 
 File System
 https://github.com/bztsrc/raspi3-tutorial/tree/master/0B_readsector
 
 Utilize Mutli Core
 https://github.com/dwelch67/raspberrypi/tree/master/multi00
+
+Speed up Framebuffer
+https://www.raspberrypi.org/forums/viewtopic.php?t=213964
