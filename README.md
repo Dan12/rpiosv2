@@ -52,3 +52,5 @@ https://github.com/dwelch67/raspberrypi/tree/master/multi00
 
 Speed up Framebuffer
 https://www.raspberrypi.org/forums/viewtopic.php?t=213964
+
+Audio
