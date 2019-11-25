@@ -36,6 +36,8 @@ https://github.com/dwelch67/raspberrypi
 
 ## TODO
 
+Check if you need to add volatile stuff to mailbox.
+
 Abilities I'd like to add one day:
 
 MMU:
